@@ -1,0 +1,19 @@
+language: bash
+sudo: required
+dist: focal
+services:
+- docker
+
+before_install:
+- docker pull admintuts/mariadb:10.5.8-focal
+- docker build . -t $DOCKER_HUB_ID/swagger_server:1.0.0
+
+script:
+- docker run -d --name db --rm -e MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD -e MYSQL_DATABASE=$MYSQL_DATABASE -e MYSQL_USER=$MYSQL_USER -e MYSQL_PASSWORD=$MYSQL_PASSWORD admintuts/mariadb:10.5.8-focal
+- sleep 15
+- docker run -d --name api --rm $DOCKER_HUB_ID/swagger_server:1.0.0
+- "curl -X GET --header 'Accept: application/json' \"127.0.0.1:8080/people\""
+
+after_success:
+- echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_ID" --password-stdin
+- docker push $DOCKER_HUB_ID/swagger_server:1.0.0

@@ -1,0 +1,53 @@
+version: '3.4'
+
+services:
+
+  swagger:
+    image: api_image
+    container_name: swagger
+    hostname: swagger
+    restart: always
+    depends_on: 
+      - db
+    build:
+      context: ../
+      dockerfile: ./Dockerfile
+    #volumes:
+    #  - ../swagger_server:/usr/src/app/swagger_server #development volume
+    ports: 
+      - 8080:8080
+    security_opt:
+      - no-new-privileges
+    networks:
+      - default
+
+  db:
+    image: admintuts/mariadb:10.5.8-focal
+    container_name: db
+    hostname: db
+    restart: unless-stopped
+    env_file: variables/mysql.env
+    cpu_percent: 90
+    mem_limit: 256m
+    mem_reservation: 128M
+    pids_limit: 100
+    #volumes:
+    #  - ./db-data:/var/lib/mysql
+    command: mysqld --max_allowed_packet=128M --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --innodb-flush-log-at-trx-commit=0
+    healthcheck:
+      test: mysqladmin --user=$$MYSQL_USER --password=$$MYSQL_PASSWORD ping
+      interval: 1m30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    security_opt:
+      - no-new-privileges
+    networks:
+      - default
+
+volumes:
+  swagger_server:
+
+networks:
+  default:
+    driver: bridge

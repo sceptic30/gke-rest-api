@@ -1,0 +1,5 @@
+setuptools
+connexion[swagger-ui]
+python_dateutil
+mysql-connector-python
+pandas
